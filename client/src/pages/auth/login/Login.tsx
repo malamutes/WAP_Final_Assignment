@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button, Col, FloatingLabel, Form, Row } from "react-bootstrap";
+import { useNavigate } from "react-router";
+import { useUserContext } from "../../../context/userContext";
 
 export default function Login() {
 
@@ -9,6 +11,9 @@ export default function Login() {
     const [validatedPass, setValidatedPass] = useState(true);
     const [initial, setInitial] = useState(true)
 
+    const { setUser } = useUserContext();
+
+    const navigate = useNavigate();
     const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 
         e.preventDefault();
@@ -28,16 +33,22 @@ export default function Login() {
             setValidatedUser(true);
             setValidatedPass(true);
             try {
-                const loginInfo = await fetch('http://localhost:3000', {
-                    method: 'GET',
+                const loginInfo = await fetch('http://localhost:3000/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: username, userpassword: userpassword })
                 });
 
+                const reply = await loginInfo.json();
                 if (loginInfo.ok) {
-                    const reply = await loginInfo.json();
-                    console.log("LOGIN SUCCESSFUL!", reply.message)
+                    setUser({ username: reply.username ?? "FALLBACK NAME", userId: reply.userID ?? "FALLBACK ID" });
+                    navigate('/');
+                    console.log("LOGIN SUCCESSFUL!", reply.valid)
                 }
                 else {
-                    console.error('LOGIN FAILED');
+                    console.error('LOGIN FAILED', reply.message);
                 }
             }
             catch (e) {

@@ -5,17 +5,35 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx tsx src/index.ts"
+    "start": "nodemon src/index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.18",
+    "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.1",
+    "@types/express-session": "^1.18.1",
+    "@types/joi": "^17.2.3",
+    "@types/mongoose": "^5.11.97",
     "@types/node": "^22.15.17",
+    "@types/passport": "^1.0.17",
+    "@types/passport-local": "^1.0.38",
+    "cors": "^2.8.5",
+    "nodemon": "^3.1.10",
+    "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "express": "^5.1.0"
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-session": "^1.18.1",
+    "joi": "^17.13.3",
+    "mongoose": "^8.14.2",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0"
   }
 }

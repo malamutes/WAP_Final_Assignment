@@ -4,9 +4,12 @@ import './index.css'
 import { AppRouter } from './routes.ts'
 import { RouterProvider } from 'react-router'
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { UserProvider } from './context/userContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={AppRouter} />
+    <UserProvider>
+      <RouterProvider router={AppRouter} />
+    </UserProvider>
   </StrictMode>,
 )
