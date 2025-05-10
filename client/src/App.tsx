@@ -1,35 +1,26 @@
-import { useEffect, useState } from 'react'
 import './App.css'
 import { Outlet } from 'react-router';
+import { Container, Nav, Navbar } from 'react-bootstrap';
 
 function App() {
 
-  const [initialMsg, setInitialMsg] = useState("INITIAL BLANK MESSAGE");
-  useEffect(() => {
-    const initialCommunication = async () => {
-      try {
-        const response = await fetch("http://localhost:3000/");
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json();
-        setInitialMsg(data.message)
-        console.log(data.message);
-      } catch (error) {
-        console.error('There was an error with the fetch operation:', error);
-      }
-    };
-
-
-    initialCommunication();
-  }, []);
-
   return (
     <>
-      <div>
-        {initialMsg}
+      <Navbar bg="dark" variant="dark" expand="lg" style={{ maxHeight: '10%' }}>
+        <Container>
+          <Navbar.Brand href="/">MyApp</Navbar.Brand>
+          <Nav className="me-auto">
+            <Nav.Link href="/">Home</Nav.Link>
+            <Nav.Link href="/login">Login</Nav.Link>
+            <Nav.Link href="/register">Register</Nav.Link>
+          </Nav>
+        </Container>
+      </Navbar>
+
+      <div style={{
+        width: '100%', height: '90%', display: 'flex',
+        justifyContent: 'center', alignItems: 'center'
+      }}>
         <Outlet />
       </div>
     </>
