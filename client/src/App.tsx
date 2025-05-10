@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import { Outlet } from 'react-router';
 
 function App() {
 
@@ -29,6 +30,7 @@ function App() {
     <>
       <div>
         {initialMsg}
+        <Outlet />
       </div>
     </>
   )
