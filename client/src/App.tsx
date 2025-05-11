@@ -17,7 +17,8 @@ function App() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({})
+                body: JSON.stringify({}),
+                credentials: 'include'
             });
 
 
@@ -64,7 +65,7 @@ function App() {
                                         </Col>
 
                                         <Col style={{ alignContent: 'center' }}>
-                                            {user?.userId}
+                                            {user?._id}
                                         </Col>
 
                                         <Col>

@@ -38,6 +38,16 @@ router.post('/register', async (req, res) => {
         const newUser = new User({ username, userpassword: hashedPassword });
 
         await newUser.save();
+        req.login(newUser, (err) => {
+            if (err) {
+                console.error("Error during login:", err);
+                res.status(500).send('Error logging in after registration');
+                return
+            }
+
+            // Return a successful response
+            res.status(200).send({ message: "USER CREATED AND LOGGED IN SUCCESSFULLY", user: newUser });
+        });
 
     } catch (err) {
         console.error("Error saving user:", err);
@@ -71,7 +81,33 @@ router.post('/login', (req, res, next) => {
             }
             res.status(200).json({ message: "Login successful", user });
         });
-    })(req, res, next); // <- Important: invoke the middleware
+    })(req, res, next);
+});
+
+
+router.post('/logout', (req, res, next) => {
+    console.log('Before logout:', req.session);
+
+
+    req.logout((err) => {
+        if (err) {
+            console.error('Error during logout:', err);
+            return next(err);
+        }
+
+
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('Error destroying session:', err);
+                return res.status(500).send('Error logging out');
+            }
+
+
+            res.clearCookie('connect.sid', { path: '/' });
+
+            res.status(200).send({ message: "Logged out successfully" });
+        });
+    })
 });
 
 router.use((err: any, req: Request, res: Response, next: NextFunction) => {
@@ -82,16 +118,5 @@ router.use((err: any, req: Request, res: Response, next: NextFunction) => {
         message: 'Something went wrong',
     });
 });
-
-router.post('/logout', async (req, res) => {
-    req.session.destroy((err) => {
-        if (err) {
-            console.error('Error destroying session:', err);
-            return res.status(500).send('Error logging out');
-        }
-
-        res.status(200).send({ message: "LOGGED OUT SUCCESSFULLY" })
-    });
-})
 
 export { router as authRouter };

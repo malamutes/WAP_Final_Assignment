@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button, Col, Container, FloatingLabel, Form, Row } from "react-bootstrap";
+import { useUserContext } from "../../../context/userContext";
+import { useNavigate } from "react-router";
 
 export default function Register() {
     const [username, setUsername] = useState("");
@@ -9,7 +11,8 @@ export default function Register() {
     const [validatedPass, setValidatedPass] = useState(true);
     const [validatedSamePass, setValidatedSamePass] = useState(true);
     const [initial, setInitial] = useState(true); // to track the first submit attempt
-
+    const navigate = useNavigate();
+    const { setUser } = useUserContext();
     // Validate input as the user types
     const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -71,13 +74,16 @@ export default function Register() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username: username, userpassword: userpassword, confirmUserPassword: confirmUserPassword })
+                body: JSON.stringify({ username: username, userpassword: userpassword, confirmUserPassword: confirmUserPassword }),
+                credentials: 'include'
             });
 
             const reply = await RegisterInfo.json();
-
             if (RegisterInfo.ok) {
-                console.log("Register SUCCESSFUL!", reply.valid);
+                console.log("Register SUCCESSFUL!");
+                setUser(reply.user);
+                navigate('/');
+
             } else {
                 console.error('Register FAILED', reply.message);
             }

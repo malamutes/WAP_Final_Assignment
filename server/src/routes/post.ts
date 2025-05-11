@@ -15,12 +15,12 @@ router.post('/create', async (req, res) => {
             return;
         }
 
-        if (req.session.user && req.session.user.username) {
+        if (req.session.passport?.user && req.session.passport.user._id) {
             const newPost = new Post({
                 title,
                 content,
                 tags: tags.split(',').map((tag: string) => tag.trim()),
-                author: req.session.user.username,
+                author: req.session.passport.user._id,
             });
             await newPost.save();
         }
@@ -40,12 +40,11 @@ router.post('/create', async (req, res) => {
 router.get('/all', async function (req, res) {
     try {
         let message = "";
-        if (!req.session.user) {
+        if (!req.session.passport?.user) {
             message = "Welcome to my blog website";
         } else {
             message = req.session.message ?? "DEFAULT FALLBACK MESSAGE";
         }
-
         const posts = await Post.find().sort({ date: -1 }).limit(15);
 
         res.status(200).send({ posts: posts, message: "ALL POSTS RETRIEVED FOR MAIN" });
@@ -81,7 +80,7 @@ router.get('/getPost', async (req, res) => {
             return
         }
 
-        const isAuthor = req.session.user?.username === post.author;
+        const isAuthor = req.session.passport?.user?._id === post.author;
         res.status(200).send({ isAuthor: isAuthor, post: post })
     } catch (error) {
         console.error(error);

@@ -3,7 +3,8 @@ import type { ReactNode } from 'react';
 
 export interface User {
     username: string;
-    userId: string;
+    _id: string;
+    createdAt: Date
 }
 
 interface UserContextType {
@@ -33,6 +34,7 @@ export const UserProvider = (props: UserProviderProps) => {
             if (res.ok) {
                 const data = await res.json();
                 setUser(data.user);
+                console.log("SESSION RETRIEVAL DATA", data)
             }
             else {
                 console.error("CANT SAVE STATE")
@@ -41,7 +43,7 @@ export const UserProvider = (props: UserProviderProps) => {
 
         };
 
-
+        fetchUser();
     }, []);
 
     return (

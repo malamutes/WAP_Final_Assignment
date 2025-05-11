@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
-import { Button, Col, Container, FloatingLabel, Form, Row } from "react-bootstrap";
+import { Button, Card, Col, Container, FloatingLabel, Form, Row } from "react-bootstrap";
 import { useNavigate } from "react-router";
 import { useUserContext } from "../../../context/userContext";
 
 export default function Login() {
 
+    const { setUser } = useUserContext();
     const [username, setUsername] = useState("");
     const [userpassword, setUserPassword] = useState("");
     const [validatedUser, setValidatedUser] = useState(true);
     const [validatedPass, setValidatedPass] = useState(true);
     const [initial, setInitial] = useState(true)
-
-    const { setUser } = useUserContext();
+    const [errorLogin, setErrorLogin] = useState(false);
 
     const navigate = useNavigate();
     const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -38,17 +38,21 @@ export default function Login() {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ username: username, userpassword: userpassword })
+                    body: JSON.stringify({ username: username, userpassword: userpassword }),
+                    credentials: 'include'
                 });
 
                 const reply = await loginInfo.json();
                 if (loginInfo.ok) {
-                    setUser({ username: reply.username ?? "FALLBACK NAME", userId: reply.userID ?? "FALLBACK ID" });
                     navigate('/');
-                    console.log("LOGIN SUCCESSFUL!", reply.valid)
+                    setUser(reply.user);
+                    console.log("LOGIN SUCCESSFUL!", reply.user);
+
+                    setErrorLogin(false);
                 }
                 else {
                     console.error('LOGIN FAILED', reply);
+                    setErrorLogin(true);
                 }
             }
             catch (e) {
@@ -64,6 +68,15 @@ export default function Login() {
                     <div style={{ marginBottom: 15 }}>
                         LOGIN
                     </div>
+
+                    {errorLogin && (
+                        <Card className="mb-4" bg="danger" text="white" style={{ maxWidth: '300px' }}>
+                            <Card.Header>Error</Card.Header>
+                            <Card.Body>
+                                <Card.Text>Invalid username or password. Please try again.</Card.Text>
+                            </Card.Body>
+                        </Card>
+                    )}
 
                     <Form onSubmit={handleLoginSubmit}>
                         <FloatingLabel controlId="floatingInput" label="Username" className="mb-3">

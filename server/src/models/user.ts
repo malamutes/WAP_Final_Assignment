@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import Joi, { required } from "joi";
 
 interface UserDocument extends Document {
-    id: string,
+    _id: string,
     username: string
     createdAt: Date,
     userpassword: string,

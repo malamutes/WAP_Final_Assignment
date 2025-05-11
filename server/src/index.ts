@@ -17,11 +17,19 @@ import bcrypt from "bcrypt"
 //https://stackoverflow.com/questions/65108033/property-user-does-not-exist-on-type-session-partialsessiondata
 declare module 'express-session' {
     export interface SessionData {
-        user: {
-            userId: string,
-            username: string,
-        },
+        passport: {
+            user: {
+                _id: string,
+            },
+        }
+
         message: string
+    }
+}
+
+declare global {
+    namespace Express {
+        interface User extends UserDocument { }
     }
 }
 
@@ -52,7 +60,7 @@ app.use(session({ secret: 'your-secret', resave: false, saveUninitialized: true 
 app.use(passport.initialize());
 app.use(passport.session());
 app.use((req, res, next) => {
-    res.locals.user = req.session.user || null;
+    res.locals.user = req.session.passport?.user || null;
     next();
 });
 app.use(authRouter);
@@ -61,13 +69,13 @@ app.use('/profile', profileRouter);
 
 passport.use(new LocalStrategy({
     usernameField: 'username',
-    passwordField: 'password',
-}, async (username, password, done) => {
+    passwordField: 'userpassword',
+}, async (username, userpassword, done) => {
     try {
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ username: username }).select("_id username userpassword createdAt");
         if (!user) return done(null, false, { message: 'Incorrect username.' });
 
-        const isMatch = await bcrypt.compare(password, user.userpassword);
+        const isMatch = await bcrypt.compare(userpassword, user.userpassword);
         if (!isMatch) return done(null, false, { message: 'Incorrect password.' });
 
         return done(null, user);
@@ -78,7 +86,7 @@ passport.use(new LocalStrategy({
 
 // Serialize and deserialize user to maintain session
 passport.serializeUser((user, done) => {
-    done(null, user.id);
+    done(null, user._id);
 });
 
 passport.deserializeUser(async (id, done) => {
@@ -91,7 +99,7 @@ passport.deserializeUser(async (id, done) => {
 });
 
 app.use((req, res, next) => {
-    res.locals.user = req.session.user || null;
+    res.locals.user = req.session.passport?.user || null;
     next();
 });
 
@@ -99,15 +107,34 @@ app.get('/', (req, res) => {
     res.send('Hello WorldADNASUIDSAHDSUIADSH!')
 })
 
+app.get('/check-session', (req, res) => {
+    if (req.session && req.session.passport && req.session.passport.user) {
+        console.log('User ID in session:', req.session.passport.user);
+        res.send('User is in session');
+    } else {
+        console.log('No user in session');
+        res.send('No user in session');
+    }
+});
+
 //give frontend data
-app.get('/session', (req, res) => {
+app.get('/session', async (req, res) => {
     if (req.isAuthenticated()) {
-        res.json({ user: req.user });
+        //console.log(req.session.passport?.user)
+        try {
+            const user = await User.findById(req.session.passport?.user).select("_id username createdAt");
+            if (user) {
+                res.status(200).send({ user: user });
+                return
+            }
+        } catch (err) {
+            console.log(err)
+        }
+        res.status(404).send({ user: null })
     } else {
         res.json({ user: null });
     }
 });
-
 
 app.post('/', (req, res) => {
     console.log(req.body);
