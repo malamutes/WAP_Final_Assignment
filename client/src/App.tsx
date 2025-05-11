@@ -37,67 +37,67 @@ function App() {
 
     return (
         <>
-            <Navbar bg="dark" variant="dark" expand="lg" style={{ maxHeight: '10%' }} >
+            <Navbar bg="dark" variant="dark" expand="md" style={{ padding: 15 }}>
                 <Container style={{ justifyContent: 'space-between' }}>
                     <Navbar.Brand href="/">MyApp</Navbar.Brand>
-                    <Nav className="me-auto">
-                        <Nav.Link href="/">Home</Nav.Link>
-                        <Nav.Link href="/login">Login</Nav.Link>
-                        <Nav.Link href="/register">Register</Nav.Link>
-                    </Nav>
-
-                    <Row className="ms-auto" style={{ color: 'white' }}>
-                        {user
-                            ?
-                            (
-                                <>
-                                    <Col style={{ alignContent: 'center' }}>
-                                        {user?.username}
-                                    </Col>
-
-                                    <Col style={{ alignContent: 'center' }}>
-                                        {user?.userId}
-                                    </Col>
-
-                                    <Col>
-                                        <Button variant='danger' onClick={handleLogout}>
-                                            LOGOUT
-                                        </Button>
-                                    </Col>
-
-                                </>
-                            )
-                            :
-                            (
-                                <>
-                                    <Col>
-                                        <Button variant='success' onClick={() => navigate('/login')}>
-                                            LOGIN
-                                        </Button>
-                                    </Col>
+                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
+                    <Navbar.Collapse id="basic-navbar-nav">
+                        <Nav className="me-auto">
+                            <Nav.Link href="/">Home</Nav.Link>
+                            <Nav.Link href="/login">My Profile</Nav.Link>
+                            <Nav.Link href="/register">My Subscriptions</Nav.Link>
+                            <Nav.Link href="/post/create">New Post</Nav.Link>
+                        </Nav>
 
 
-                                    <Col>
-                                        <Button variant='primary' onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => navigate('/register')}>
-                                            REGISTER
-                                        </Button>
-                                    </Col>
+                        <Row style={{ color: 'white' }}>
+                            {user
+                                ?
+                                (
+                                    <>
+                                        <Col style={{ alignContent: 'center' }}>
+                                            {user?.username}
+                                        </Col>
 
-                                </>
-                            )}
-                    </Row>
+                                        <Col style={{ alignContent: 'center' }}>
+                                            {user?.userId}
+                                        </Col>
+
+                                        <Col>
+                                            <Button variant='danger' onClick={handleLogout}>
+                                                LOGOUT
+                                            </Button>
+                                        </Col>
+
+                                    </>
+                                )
+                                :
+                                (
+                                    <>
+                                        <Col>
+                                            <Button variant='success' onClick={() => navigate('/login')}>
+                                                LOGIN
+                                            </Button>
+                                        </Col>
 
 
+                                        <Col>
+                                            <Button variant='primary' onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => navigate('/register')}>
+                                                REGISTER
+                                            </Button>
+                                        </Col>
 
+                                    </>
+                                )}
+                        </Row>
+                    </Navbar.Collapse>
                 </Container>
             </Navbar>
 
-            <div style={{
-                width: '100%', height: '90%', display: 'flex',
-                justifyContent: 'center', alignItems: 'center'
-            }}>
+            <div style={{ marginTop: 50 }}>
                 <Outlet />
             </div>
+
         </>
     )
 }

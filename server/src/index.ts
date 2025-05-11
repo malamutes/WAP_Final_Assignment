@@ -10,6 +10,8 @@ import session from "express-session";
 import { User, UserDocument } from "./models/user";
 import mongoose from "mongoose";
 import { Strategy as LocalStrategy } from 'passport-local';
+import { postRouter } from './routes/post';
+import { profileRouter } from './routes/profile';
 
 //https://stackoverflow.com/questions/65108033/property-user-does-not-exist-on-type-session-partialsessiondata
 declare module 'express-session' {
@@ -52,6 +54,8 @@ app.use((req, res, next) => {
     next();
 });
 app.use(authRouter);
+app.use('/post', postRouter);
+app.use('/profile', profileRouter);
 
 passport.use(new LocalStrategy({
     usernameField: 'username',
