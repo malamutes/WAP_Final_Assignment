@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Col, FloatingLabel, Form, Row } from "react-bootstrap";
+import { Button, Col, Container, FloatingLabel, Form, Row } from "react-bootstrap";
 
 export default function Register() {
     const [username, setUsername] = useState("");
@@ -87,54 +87,59 @@ export default function Register() {
     };
 
     return (
-        <Row style={{ width: '30%' }}>
-            <Col>
-                <Form onSubmit={handleRegisterSubmit}>
-                    <FloatingLabel controlId="floatingInput" label="Username" className="mb-3">
-                        <Form.Control
-                            type="text"
-                            placeholder="Username"
-                            value={username}
-                            onChange={handleUsernameChange}
-                            required={true}
-                            isInvalid={initial ? false : !validatedUser}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                            Username must be between 6 and 30 characters.
-                        </Form.Control.Feedback>
-                    </FloatingLabel>
+        <Container style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Row style={{ width: '30%' }}>
+                <Col>
+                    <div style={{ marginBottom: 15 }}>
+                        REGISTER
+                    </div>
+                    <Form onSubmit={handleRegisterSubmit}>
+                        <FloatingLabel controlId="floatingInput" label="Username" className="mb-3">
+                            <Form.Control
+                                type="text"
+                                placeholder="Username"
+                                value={username}
+                                onChange={handleUsernameChange}
+                                required={true}
+                                isInvalid={initial ? false : !validatedUser}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                Username must be between 6 and 30 characters.
+                            </Form.Control.Feedback>
+                        </FloatingLabel>
 
-                    <FloatingLabel controlId="floatingPassword" label="Password" className="mb-3">
-                        <Form.Control
-                            type="password"
-                            placeholder="Password"
-                            value={userpassword}
-                            onChange={handlePasswordChange}
-                            required={true}
-                            isInvalid={initial ? false : !validatedPass}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                            Password must be between 6 and 30 characters.
-                        </Form.Control.Feedback>
-                    </FloatingLabel>
+                        <FloatingLabel controlId="floatingPassword" label="Password" className="mb-3">
+                            <Form.Control
+                                type="password"
+                                placeholder="Password"
+                                value={userpassword}
+                                onChange={handlePasswordChange}
+                                required={true}
+                                isInvalid={initial ? false : !validatedPass}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                Password must be between 6 and 30 characters.
+                            </Form.Control.Feedback>
+                        </FloatingLabel>
 
-                    <FloatingLabel controlId="floatingConfirmPassword" label="Confirm Password" className="mb-3">
-                        <Form.Control
-                            type="password"
-                            placeholder="Confirm Password"
-                            value={confirmUserPassword}
-                            onChange={handleConfirmPasswordChange}
-                            required={true}
-                            isInvalid={initial ? false : !validatedSamePass}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                            Passwords must match!
-                        </Form.Control.Feedback>
-                    </FloatingLabel>
+                        <FloatingLabel controlId="floatingConfirmPassword" label="Confirm Password" className="mb-3">
+                            <Form.Control
+                                type="password"
+                                placeholder="Confirm Password"
+                                value={confirmUserPassword}
+                                onChange={handleConfirmPasswordChange}
+                                required={true}
+                                isInvalid={initial ? false : !validatedSamePass}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                Passwords must match!
+                            </Form.Control.Feedback>
+                        </FloatingLabel>
 
-                    <Button type="submit">Register</Button>
-                </Form>
-            </Col>
-        </Row>
+                        <Button type="submit">Register</Button>
+                    </Form>
+                </Col>
+            </Row>
+        </Container>
     );
 }

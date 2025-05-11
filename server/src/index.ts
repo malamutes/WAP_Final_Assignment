@@ -12,6 +12,7 @@ import mongoose from "mongoose";
 import { Strategy as LocalStrategy } from 'passport-local';
 import { postRouter } from './routes/post';
 import { profileRouter } from './routes/profile';
+import bcrypt from "bcrypt"
 
 //https://stackoverflow.com/questions/65108033/property-user-does-not-exist-on-type-session-partialsessiondata
 declare module 'express-session' {
@@ -41,6 +42,7 @@ const port = 3000;
 const corsOptions = {
     origin: 'http://localhost:5173',
     optionsSuccessStatus: 200,
+    credentials: true
 }
 
 app.use(cors(corsOptions));
@@ -65,7 +67,7 @@ passport.use(new LocalStrategy({
         const user = await User.findOne({ username });
         if (!user) return done(null, false, { message: 'Incorrect username.' });
 
-        const isMatch = await user.comparePassword(password);
+        const isMatch = await bcrypt.compare(password, user.userpassword);
         if (!isMatch) return done(null, false, { message: 'Incorrect password.' });
 
         return done(null, user);
@@ -96,6 +98,16 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
     res.send('Hello WorldADNASUIDSAHDSUIADSH!')
 })
+
+//give frontend data
+app.get('/session', (req, res) => {
+    if (req.isAuthenticated()) {
+        res.json({ user: req.user });
+    } else {
+        res.json({ user: null });
+    }
+});
+
 
 app.post('/', (req, res) => {
     console.log(req.body);

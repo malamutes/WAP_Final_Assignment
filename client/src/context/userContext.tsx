@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
 export interface User {
@@ -19,6 +19,30 @@ interface UserProviderProps {
 
 export const UserProvider = (props: UserProviderProps) => {
     const [user, setUser] = useState<User | null>(null);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const res = await fetch('http://localhost:3000/session', {
+                method: "GET",
+                headers: {
+                    'Accept': 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setUser(data.user);
+            }
+            else {
+                console.error("CANT SAVE STATE")
+                //redirect to re nav page probably
+            }
+
+        };
+
+
+    }, []);
 
     return (
         <UserContext.Provider value={{ user, setUser }}>

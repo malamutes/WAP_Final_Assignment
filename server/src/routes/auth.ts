@@ -1,9 +1,12 @@
 import express from "express";
 import bcrypt from "bcrypt";
-import { User, userRegistrationSchema, userValidationSchema } from "../models/user"
+import { User, UserDocument, userRegistrationSchema, userValidationSchema } from "../models/user"
+import passport from "passport";
+import { Request, Response, NextFunction } from 'express';
 
 const saltRounds = 10;
 const router = express.Router();
+
 
 // Register route
 router.post('/register', async (req, res) => {
@@ -43,43 +46,41 @@ router.post('/register', async (req, res) => {
 });
 
 // Login route
-router.post('/login', async (req, res) => {
-    const { username, userpassword } = req.body;
-    //console.log(username, userpassword);
-
-    const validationResult = userValidationSchema.validate(req.body);
-
-    if (validationResult.error) {
-        res.status(404).send({ message: "Invalid credentials!" });
-        return;
+router.post('/login', (req, res, next) => {
+    const { error } = userValidationSchema.validate(req.body);
+    if (error) {
+        res.status(400).json({ message: "Invalid credentials!" });
+        return
     }
 
-    try {
-        const existingUser = await User.findOne({ username });
-        if (existingUser) {
-
-            const isMatch = await bcrypt.compare(userpassword, existingUser.userpassword);
-            if (isMatch) {
-                // Password is correct, log the user in
-                req.session.user = {
-                    username: existingUser.username,
-                    userId: existingUser._id as string,
-                };
-
-                res.locals.user = req.session.user;
-
-                req.session.message = `${username} has logged in`
-                res.status(200).send({ message: "VALID LOGIN", valid: true, username: existingUser.username, userID: existingUser._id })
-            } else {
-                res.status(404).send({ message: "INVALID LOGIN", valid: false })
-            }
-        } else {
-            res.status(404).send({ message: "USER NOT FOUND", valid: false })
+    passport.authenticate('local', (err: any, user: UserDocument, info: any) => {
+        if (err) {
+            next(err);
+            return
+        };
+        if (!user) {
+            res.status(401).json({ message: info.message });
+            return
         }
-    } catch (err) {
-        console.error("Error logging in", err);
-        res.status(500).send('Error logging in');
-    }
+
+        // Log the user in
+        req.login(user, (err) => {
+            if (err) {
+                next(err);
+                return
+            }
+            res.status(200).json({ message: "Login successful", user });
+        });
+    })(req, res, next); // <- Important: invoke the middleware
+});
+
+router.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    console.error(err.stack);
+
+    res.status(err.status || 500).json({
+        success: false,
+        message: 'Something went wrong',
+    });
 });
 
 router.post('/logout', async (req, res) => {

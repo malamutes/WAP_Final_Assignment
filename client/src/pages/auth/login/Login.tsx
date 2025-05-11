@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Col, FloatingLabel, Form, Row } from "react-bootstrap";
+import { Button, Col, Container, FloatingLabel, Form, Row } from "react-bootstrap";
 import { useNavigate } from "react-router";
 import { useUserContext } from "../../../context/userContext";
 
@@ -48,7 +48,7 @@ export default function Login() {
                     console.log("LOGIN SUCCESSFUL!", reply.valid)
                 }
                 else {
-                    console.error('LOGIN FAILED', reply.message);
+                    console.error('LOGIN FAILED', reply);
                 }
             }
             catch (e) {
@@ -58,41 +58,48 @@ export default function Login() {
     }
 
     return (
-        <Row style={{ width: '30%' }}>
-            <Col>
-                <Form onSubmit={handleLoginSubmit}>
-                    <FloatingLabel controlId="floatingInput" label="Username" className="mb-3">
-                        <Form.Control
-                            type="text"
-                            placeholder="Username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            required={true}
-                            isInvalid={initial ? false : !validatedUser}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                            Username must be between 6 and 30 characters.
-                        </Form.Control.Feedback>
-                    </FloatingLabel>
+        <Container style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Row style={{ width: '30%' }}>
+                <Col>
+                    <div style={{ marginBottom: 15 }}>
+                        LOGIN
+                    </div>
 
-                    <FloatingLabel controlId="floatingPassword" label="Password" className="mb-3">
-                        <Form.Control
-                            type="password"
-                            placeholder="Password"
-                            value={userpassword}
-                            onChange={(e) => setUserPassword(e.target.value)}
-                            required={true}
-                            isInvalid={initial ? false : !validatedPass}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                            Password must be between 6 and 30 characters.
-                        </Form.Control.Feedback>
-                    </FloatingLabel>
+                    <Form onSubmit={handleLoginSubmit}>
+                        <FloatingLabel controlId="floatingInput" label="Username" className="mb-3">
+                            <Form.Control
+                                type="text"
+                                placeholder="Username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                required={true}
+                                isInvalid={initial ? false : !validatedUser}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                Username must be between 6 and 30 characters.
+                            </Form.Control.Feedback>
+                        </FloatingLabel>
 
-                    <Button type="submit">Login</Button>
-                </Form>
+                        <FloatingLabel controlId="floatingPassword" label="Password" className="mb-3">
+                            <Form.Control
+                                type="password"
+                                placeholder="Password"
+                                value={userpassword}
+                                onChange={(e) => setUserPassword(e.target.value)}
+                                required={true}
+                                isInvalid={initial ? false : !validatedPass}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                Password must be between 6 and 30 characters.
+                            </Form.Control.Feedback>
+                        </FloatingLabel>
 
-            </Col>
-        </Row>
+                        <Button type="submit">Login</Button>
+                    </Form>
+
+                </Col>
+            </Row>
+        </Container>
+
     )
 }

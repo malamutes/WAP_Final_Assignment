@@ -1,7 +1,7 @@
 import './App.css'
 import { Outlet, useNavigate } from 'react-router';
 import { Button, Col, Container, Nav, Navbar, Row } from 'react-bootstrap';
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { UserProvider, useUserContext } from './context/userContext';
 
 function App() {
@@ -34,6 +34,10 @@ function App() {
             console.log("ERROR LOGOUT : ", e)
         }
     }
+
+    useEffect(() => {
+        console.log(user)
+    }, [])
 
     return (
         <>
