@@ -49,8 +49,9 @@ function App() {
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">
                             <Nav.Link href="/">Home</Nav.Link>
-                            <Nav.Link href="/login">My Profile</Nav.Link>
+                            <Nav.Link href={`/profile/${user?.username}`}>My Profile</Nav.Link>
                             <Nav.Link href="/register">My Subscriptions</Nav.Link>
+                            <Nav.Link href="/post/myPosts">My Posts</Nav.Link>
                             <Nav.Link href="/post/create">New Post</Nav.Link>
                         </Nav>
 

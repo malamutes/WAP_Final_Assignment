@@ -7,6 +7,8 @@ import Post from "./pages/post/Post";
 import PostDetail from "./pages/post/components/PostDetail";
 import Profile from "./pages/profile/Profile";
 import CreatePost from "./pages/post/CreatePost";
+import MyPosts from "./pages/post/MyPosts";
+import EditPost from "./pages/post/EditPost";
 
 export const AppRouter = createBrowserRouter([
     {
@@ -35,6 +37,13 @@ export const AppRouter = createBrowserRouter([
                 children: [
                     { path: ":postID", Component: PostDetail },
                     { path: "create", Component: CreatePost },
+                    { path: 'myPosts', Component: MyPosts },
+                    {
+                        path: 'edit',
+                        children: [
+                            { path: ':postID', Component: EditPost }, // Edit a specific post
+                        ],
+                    },
                 ],
             },
             {

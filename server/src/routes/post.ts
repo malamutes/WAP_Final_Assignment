@@ -5,23 +5,27 @@ import { postValidationSchema } from '../models/post';
 const router = Router();
 
 // Create post
-router.post('/create', async (req, res) => {
+router.post('/addPost', async (req, res) => {
+    const { title, content, tags } = req.body;
+    console.log(title, content, tags)
     try {
-        const { title, content, tags } = req.body;
         const validationResult = postValidationSchema.validate(req.body);
 
         if (validationResult.error) {
             res.status(400).send(validationResult.error.details[0].message);
             return;
         }
+        console.log(req.session);
+        if (req.session.passport?.user) {
+            const username = req.session.passport.user.username;
 
-        if (req.session.passport?.user && req.session.passport.user._id) {
             const newPost = new Post({
                 title,
                 content,
                 tags: tags.split(',').map((tag: string) => tag.trim()),
-                author: req.session.passport.user._id,
+                author: username,
             });
+
             await newPost.save();
         }
         else {
@@ -57,8 +61,8 @@ router.get('/all', async function (req, res) {
 // Get user's posts
 router.get('/userPosts', async (req, res) => {
     try {
-        if (req.session.user && req.session.user.username) {
-            const posts = await Post.find({ author: req.session.user.username });
+        if (req.session.passport?.user && req.session.passport.user.username) {
+            const posts = await Post.find({ author: req.session.passport.user.username });
             res.status(200).send({ posts: posts, message: "POSTS RETRIEVED" });
             return
         }
@@ -133,17 +137,22 @@ router.post('/edit/:postID', async (req, res) => {
 });
 
 // Delete post
-router.post('/delete/:postID', async (req, res) => {
+router.delete('/delete/:postID', async (req, res) => {
+    console.log("POSTid TO DELETE:", req.params.postID);
     try {
         const post = await Post.findById(req.params.postID);
-        if (!post) return res.status(404).render('error', { message: 'Post not found' });
+        if (!post) {
+            res.status(404).render('error', { message: 'Post not found' });
+            return
+        }
 
-        if (req.session.user.username !== post.author) {
-            return res.status(403).render('error', { message: 'Not authorized' });
+        if (req.session.passport?.user.username !== post.author) {
+            res.status(403).send({ message: 'Not authorized' });
+            return
         }
 
         await Post.findByIdAndDelete(req.params.postID);
-        res.redirect('/myPosts');
+        res.status(200).send({ message: "Post deleted" });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting post' });

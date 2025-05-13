@@ -57,28 +57,18 @@ router.post('/register', async (req, res) => {
 
 // Login route
 router.post('/login', (req, res, next) => {
-    const { error } = userValidationSchema.validate(req.body);
-    if (error) {
-        res.status(400).json({ message: "Invalid credentials!" });
-        return
-    }
-
     passport.authenticate('local', (err: any, user: UserDocument, info: any) => {
-        if (err) {
-            next(err);
-            return
-        };
-        if (!user) {
-            res.status(401).json({ message: info.message });
-            return
-        }
+        if (err) return next(err);
+        if (!user) return res.status(401).json({ message: info.message });
 
-        // Log the user in
         req.login(user, (err) => {
-            if (err) {
-                next(err);
-                return
-            }
+            if (err) return next(err);
+
+            // Debug logs:
+            console.log('Login successful!');
+            console.log('Session object after login:', req.session);
+            console.log('Passport user:', req.session.passport?.user);
+
             res.status(200).json({ message: "Login successful", user });
         });
     })(req, res, next);

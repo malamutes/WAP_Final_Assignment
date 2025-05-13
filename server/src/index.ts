@@ -13,6 +13,8 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import { postRouter } from './routes/post';
 import { profileRouter } from './routes/profile';
 import bcrypt from "bcrypt"
+import { postValidationSchema } from './models/post';
+const { ObjectId } = mongoose.Types;
 
 //https://stackoverflow.com/questions/65108033/property-user-does-not-exist-on-type-session-partialsessiondata
 declare module 'express-session' {
@@ -20,6 +22,7 @@ declare module 'express-session' {
         passport: {
             user: {
                 _id: string,
+                username: string
             },
         }
 
@@ -85,13 +88,15 @@ passport.use(new LocalStrategy({
 }));
 
 // Serialize and deserialize user to maintain session
-passport.serializeUser((user, done) => {
-    done(null, user._id);
+passport.serializeUser((user: any, done) => {
+    done(null, { id: user._id.toString(), username: user.username });
 });
 
-passport.deserializeUser(async (id, done) => {
+passport.deserializeUser(async (userObj: { id: string, username: string }, done) => {
     try {
-        const user = await User.findById(id);
+        const userId = new ObjectId(userObj.id); // Ensure it's an ObjectId
+        const user = await User.findById(userId).select("_id username createdAt");
+        if (!user) return done(null, false);
         done(null, user);
     } catch (err) {
         done(err);
@@ -109,7 +114,7 @@ app.get('/', (req, res) => {
 
 app.get('/check-session', (req, res) => {
     if (req.session && req.session.passport && req.session.passport.user) {
-        console.log('User ID in session:', req.session.passport.user);
+        console.log('User ID in session:', req.session.passport);
         res.send('User is in session');
     } else {
         console.log('No user in session');
@@ -120,9 +125,9 @@ app.get('/check-session', (req, res) => {
 //give frontend data
 app.get('/session', async (req, res) => {
     if (req.isAuthenticated()) {
-        //console.log(req.session.passport?.user)
         try {
-            const user = await User.findById(req.session.passport?.user).select("_id username createdAt");
+            const user = await User.find({ username: req.session.passport?.user.username }).select("_id username createdAt");
+            //console.log(user);
             if (user) {
                 res.status(200).send({ user: user });
                 return

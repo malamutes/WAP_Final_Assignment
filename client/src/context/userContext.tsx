@@ -33,7 +33,7 @@ export const UserProvider = (props: UserProviderProps) => {
 
             if (res.ok) {
                 const data = await res.json();
-                setUser(data.user);
+                setUser(data.user[0]);
                 console.log("SESSION RETRIEVAL DATA", data)
             }
             else {
