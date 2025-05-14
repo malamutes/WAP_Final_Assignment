@@ -4,6 +4,10 @@ import { Button, Col, Container, Nav, Navbar, Row } from 'react-bootstrap';
 import { useContext, useEffect } from 'react';
 import { UserProvider, useUserContext } from './context/userContext';
 
+//GOOGLE OAUTH
+//NAV BAR UI
+//SOCKET
+
 function App() {
     const navigate = useNavigate();
     const { user, setUser } = useUserContext();
@@ -42,7 +46,7 @@ function App() {
 
     return (
         <>
-            <Navbar bg="dark" variant="dark" expand="md" style={{ padding: 15 }}>
+            <Navbar bg="dark" variant="dark" expand="xl" style={{ padding: 15 }}>
                 <Container style={{ justifyContent: 'space-between' }}>
                     <Navbar.Brand href="/">MyApp</Navbar.Brand>
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
@@ -50,7 +54,7 @@ function App() {
                         <Nav className="me-auto">
                             <Nav.Link href="/">Home</Nav.Link>
                             <Nav.Link href={`/profile/${user?.username}`}>My Profile</Nav.Link>
-                            <Nav.Link href="/register">My Subscriptions</Nav.Link>
+                            <Nav.Link href="/subscription">My Subscriptions</Nav.Link>
                             <Nav.Link href="/post/myPosts">My Posts</Nav.Link>
                             <Nav.Link href="/post/create">New Post</Nav.Link>
                         </Nav>

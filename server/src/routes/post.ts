@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { Post } from '../models/post';
 import { postValidationSchema } from '../models/post';
+import { Subscription } from '../models/subscription';
+import { User } from '../models/user';
+import mongoose from 'mongoose';
 
 const router = Router();
 
@@ -62,6 +65,7 @@ router.get('/all', async function (req, res) {
 router.get('/userPosts', async (req, res) => {
     try {
         if (req.session.passport?.user && req.session.passport.user.username) {
+            console.log("USER ID", req.session.passport?.user);
             const posts = await Post.find({ author: req.session.passport.user.username });
             res.status(200).send({ posts: posts, message: "POSTS RETRIEVED" });
             return
@@ -77,15 +81,40 @@ router.get('/userPosts', async (req, res) => {
 router.get('/getPost', async (req, res) => {
     console.log(req.query.postID)
     try {
-
         const post = await Post.findById(req.query.postID);
+        console.log("POST: ", post);
         if (!post) {
             res.status(404).send({ message: 'Post not found' });
-            return
+            return;
         }
 
         const isAuthor = req.session.passport?.user?._id === post.author;
-        res.status(200).send({ isAuthor: isAuthor, post: post })
+
+        // Get the ObjectId of the author using their username
+        const authorUser = await User.findOne({ username: post.author });
+
+        if (!authorUser) {
+            res.status(404).send({ message: 'Author not found' });
+            return;
+        }
+
+        console.log("USER ID", req.session.passport?.user);
+        const subscriberId = new mongoose.Types.ObjectId(req.session.passport?.user.id);
+        const targetUserId = new mongoose.Types.ObjectId(authorUser._id);
+
+        //console.log("USERID", subscriberId, "AUTHORID", targetUserId)
+        // Check if the user is subscribed to the author
+        const existingSubscription = await Subscription.findOne({
+            subscriberId,
+            targetUserId,
+        });
+
+        console.log(existingSubscription, subscriberId, targetUserId)
+        res.status(200).send({
+            isAuthor: isAuthor,
+            post: post,
+            isSubscribed: existingSubscription !== null, // Add subscription status to the response
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching post' });
@@ -101,7 +130,7 @@ router.get('/edit/:postID', async (req, res) => {
             return
         }
 
-        if (req.session.user.username !== post.author) {
+        if (req.session.passport?.user.username !== post.author) {
             res.status(403).render('error', { message: 'Not authorized' });
             return
         }
@@ -114,22 +143,31 @@ router.get('/edit/:postID', async (req, res) => {
 });
 
 // Submit edited post
-router.post('/edit/:postID', async (req, res) => {
+router.put('/edit/:postID', async (req, res) => {
     try {
         const { title, content, tags } = req.body;
         const post = await Post.findById(req.params.postID);
 
-        if (!post) return res.status(404).render('error', { message: 'Post not found' });
-        if (req.session.user.username !== post.author) {
-            return res.status(403).render('error', { message: 'Not authorized' });
+        if (!post) {
+            res.status(404).send({ message: 'Post not found' });
+            return
+        }
+
+        if (req.session.passport?.user.username !== post.author) {
+            res.status(403).send({ message: 'Not authorized' });
+            return
         }
 
         post.title = title;
         post.content = content;
-        post.tags = tags.split(',').map(tag => tag.trim());
+        post.tags = Array.isArray(tags)
+            ? tags.map((tag: string) => tag.trim())
+            : (tags || "").split(',').map((tag: string) => tag.trim());
         await post.save();
 
-        res.redirect(`/post/${post._id}`);
+        res.status(200).send({ message: "POST SAVED SUCCESSFULLY" });
+        return
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error updating post' });

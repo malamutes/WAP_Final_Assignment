@@ -24,7 +24,8 @@ export default function Profile() {
                 method: "GET",
                 headers: {
                     'Accept': 'application/json'
-                }
+                },
+                credentials: 'include'
             });
 
             if (getProfile.ok) {

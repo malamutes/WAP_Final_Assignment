@@ -22,7 +22,8 @@ declare module 'express-session' {
         passport: {
             user: {
                 _id: string,
-                username: string
+                username: string,
+                id: string
             },
         }
 

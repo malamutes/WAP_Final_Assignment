@@ -9,6 +9,7 @@ import Profile from "./pages/profile/Profile";
 import CreatePost from "./pages/post/CreatePost";
 import MyPosts from "./pages/post/MyPosts";
 import EditPost from "./pages/post/EditPost";
+import Subscription from "./pages/subscription/Subscription";
 
 export const AppRouter = createBrowserRouter([
     {
@@ -51,6 +52,9 @@ export const AppRouter = createBrowserRouter([
                 children: [
                     { path: ":profileID", Component: Profile },
                 ],
+            },
+            {
+                path: 'subscription', Component: Subscription
             }
         ],
     },
