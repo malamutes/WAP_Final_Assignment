@@ -1,8 +1,9 @@
 import './App.css'
 import { Outlet, useNavigate } from 'react-router';
 import { Button, Col, Container, Nav, Navbar, Row } from 'react-bootstrap';
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { UserProvider, useUserContext } from './context/userContext';
+import { useSocket } from './context/socketContext';
 
 //GOOGLE OAUTH
 //NAV BAR UI
@@ -11,6 +12,7 @@ import { UserProvider, useUserContext } from './context/userContext';
 function App() {
     const navigate = useNavigate();
     const { user, setUser } = useUserContext();
+    const { socket } = useSocket();
 
     const handleLogout = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
@@ -27,6 +29,9 @@ function App() {
 
 
             if (logout.ok) {
+                if (socket) {
+                    socket?.disconnect();
+                }
                 setUser(null);
                 navigate('/');
                 console.log("LOGOUT SUCCESSFUL!");

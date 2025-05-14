@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import path from "path";
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-import express from "express";
+import express, { NextFunction } from "express";
 import cors from "cors";
 import { authRouter } from "./routes/auth";
 import passport from "passport";
@@ -14,6 +14,8 @@ import { postRouter } from './routes/post';
 import { profileRouter } from './routes/profile';
 import bcrypt from "bcrypt"
 import { postValidationSchema } from './models/post';
+import { Server } from 'socket.io';
+import { createServer } from 'node:http';
 const { ObjectId } = mongoose.Types;
 
 //https://stackoverflow.com/questions/65108033/property-user-does-not-exist-on-type-session-partialsessiondata
@@ -49,6 +51,7 @@ mongoose.connect(process.env.MONGODB_URL)
     .catch(err => console.error('Could not connect to MongoDB', err));
 
 const app = express()
+const server = createServer(app);
 const port = 3000;
 
 const corsOptions = {
@@ -56,11 +59,23 @@ const corsOptions = {
     optionsSuccessStatus: 200,
     credentials: true
 }
+const io = new Server(server, {
+    cors: {
+        origin: 'http://localhost:5173',
+        credentials: true,
+    }
+});
+
+const sessionMiddleware = session({
+    secret: 'your-secret',
+    resave: false,
+    saveUninitialized: true
+});
 
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(session({ secret: 'your-secret', resave: false, saveUninitialized: true }));
+app.use(sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
 app.use((req, res, next) => {
@@ -147,6 +162,67 @@ app.post('/', (req, res) => {
     res.status(200).send({ message: '123213ad WorldADNASUIDSAHDSUIADSH!' })
 })
 
-app.listen(port, () => {
+interface ConnectedUser {
+    socketId: string;
+    userId: string;
+    username: string;
+}
+let connectedUsers: ConnectedUser[] = [];
+
+//https://socket.io/how-to/use-with-passport
+//dont know how to type it, not provided on docs so just gonan copy it
+function onlyForHandshake(middleware: any) {
+    return (req: any, res: any, next: any) => {
+        const isHandshake = req._query.sid === undefined;
+        if (isHandshake) {
+            middleware(req, res, next);
+        } else {
+            next();
+        }
+    };
+}
+
+io.engine.use(onlyForHandshake(sessionMiddleware));
+io.engine.use(onlyForHandshake(passport.session()));
+io.engine.use(
+    onlyForHandshake((req: any, res: any, next: any) => {
+        if (req.user) {
+            next();
+        } else {
+            res.writeHead(401);
+            res.end();
+        }
+    }),
+);
+
+io.on('connection', (socket) => {
+    const user = socket.request.user;
+    console.log("NEW USER HAS JOINED WITH ID: ", user)
+
+    const existingUserIndex = connectedUsers.findIndex((connUser) => connUser.userId === user._id.toString());
+    console.log(existingUserIndex);
+    if (existingUserIndex !== -1) {
+        // If the user is already in the list, update their socketId
+        connectedUsers[existingUserIndex].socketId = socket.id;
+    } else {
+        // If the user is not in the list, add a new entry
+        connectedUsers.push({ userId: user._id.toString(), username: user.username, socketId: socket.id })
+    }
+
+    io.emit("UPDATED_USERS_LIST", connectedUsers);
+
+    socket.on('disconnect', () => {
+        connectedUsers = connectedUsers.filter(u => u.userId !== socket.request.user._id.toString());
+
+        console.log('User disconnected:', user.username);
+        // Optionally emit updated list to others
+        io.emit('UPDATED_USERS_LIST', connectedUsers);
+    });
+});
+
+export { io };
+
+server.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 })
+

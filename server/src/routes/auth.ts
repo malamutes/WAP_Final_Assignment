@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { User, UserDocument, userRegistrationSchema, userValidationSchema } from "../models/user"
 import passport from "passport";
 import { Request, Response, NextFunction } from 'express';
+import { io } from "..";
 
 const saltRounds = 10;
 const router = express.Router();
@@ -62,14 +63,19 @@ router.post('/login', (req, res, next) => {
         if (!user) return res.status(401).json({ message: info.message });
 
         req.login(user, (err) => {
-            if (err) return next(err);
+            if (err) {
+                console.error("Error during login:", err);
+                return res.status(500).send('Error logging in after registration');
+            }
 
-            // Debug logs:
-            console.log('Login successful!');
-            console.log('Session object after login:', req.session);
-            console.log('Passport user:', req.session.passport?.user);
+            req.session.save((err) => {
+                if (err) {
+                    console.error("Session save failed after login:", err);
+                    return res.status(500).send("Error saving session");
+                }
 
-            res.status(200).json({ message: "Login successful", user });
+                res.status(200).send({ message: "USER CREATED AND LOGGED IN SUCCESSFULLY", user: user });
+            });
         });
     })(req, res, next);
 });
@@ -77,7 +83,7 @@ router.post('/login', (req, res, next) => {
 
 router.post('/logout', (req, res, next) => {
     console.log('Before logout:', req.session);
-
+    const sessionId = req.session.id;
 
     req.logout((err) => {
         if (err) {
@@ -91,7 +97,6 @@ router.post('/logout', (req, res, next) => {
                 console.error('Error destroying session:', err);
                 return res.status(500).send('Error logging out');
             }
-
 
             res.clearCookie('connect.sid', { path: '/' });
 
