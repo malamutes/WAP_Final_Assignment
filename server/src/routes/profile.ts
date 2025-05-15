@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { User } from '../models/user';
 import { Post } from '../models/post';
 import { Subscription } from '../models/subscription';
+import { Notification } from '../models/notification';
 
 const router = Router();
 
@@ -113,7 +114,7 @@ router.delete('/subscribe/:authorName', async function (req, res) {
 });
 
 router.get('/getAllSubscriptions', async function (req, res) {
-    console.log("SUBSCRPTIPON ROUTE!");
+    //console.log("SUBSCRPTIPON ROUTE!");
     try {
         const subscriptions = await Subscription.find({ subscriberId: req.session.passport?.user.id });
 
@@ -139,7 +140,7 @@ router.get('/getAllSubscriptions', async function (req, res) {
             };
         });
 
-        console.log("SUBSCRIPTIONS: ", userSubscriptions)
+        //console.log("SUBSCRIPTIONS: ", userSubscriptions)
         res.status(200).send({ subscriptions: userSubscriptions });
 
     } catch (error) {
@@ -147,5 +148,87 @@ router.get('/getAllSubscriptions', async function (req, res) {
         res.status(500).json({ message: 'Error fetching profile' });
     }
 });
+
+router.get('/getAllSubscribers', async function (req, res) {
+    //console.log("SUBSCRPTIPON ROUTE!");
+    try {
+        const subscribers = await Subscription.find({ targetUserId: req.session.passport?.user.id });
+
+        if (subscribers.length === 0) {
+            res.status(404).send({ message: "NO subscribers FOUND!" });
+            return;
+        }
+
+        // Extract all targetUserIds from the subscriptions
+        const subscribersID = subscribers.map(subscribers => subscribers.subscriberId);
+
+        //console.log("SUBSCRIPTIONS: ", userSubscriptions)
+        res.status(200).send({ subscribers: subscribersID });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching profile' });
+    }
+});
+
+router.get('/notification', async function (req, res) {
+    //console.log("SUBSCRPTIPON ROUTE!");
+    try {
+        const notifications = await Notification.find({ recipientId: req.session.passport?.user.id });
+
+        if (notifications.length === 0) {
+            res.status(404).send({ message: "NO subscribers FOUND!" });
+            return;
+        }
+
+        const postIds = notifications.map(notification => notification.postId);
+
+        //finding posts based on id, this is basically similar to an inner join sql query
+        const posts = await Post.find({ '_id': { $in: postIds } });
+
+        const now = new Date();
+        // Now, map the subscription to user details
+        const postNotif = notifications.map(notifications => {
+            const post = posts.find(p => p._id.toString() === notifications.postId.toString());
+
+            if (!post) return null; // Skip if post is not found
+
+            const postDate = new Date(post.date);
+            const diffInMs = now.getTime() - postDate.getTime();
+            const diffInMinutes = Math.floor(diffInMs / 60000);
+
+            let timeStamp = '';
+            if (diffInMinutes < 1) {
+                timeStamp = 'just now';
+            } else if (diffInMinutes < 60) {
+                timeStamp = `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+            } else if (diffInMinutes < 1440) {
+                const hours = Math.floor(diffInMinutes / 60);
+                timeStamp = `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            } else {
+                const days = Math.floor(diffInMinutes / 1440);
+                timeStamp = `${days} day${days > 1 ? 's' : ''} ago`;
+            }
+
+            return {
+                title: post.title,
+                authorName: post.author,
+                timeStamp,
+                // You can include more post or notification details here
+            };
+        });
+
+        // Extract all targetUserIds from the subscriptions
+
+        //console.log("SUBSCRIPTIONS: ", userSubscriptions)
+        res.status(200).send({ notifications: postNotif });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching notifs' });
+    }
+});
+
+
 
 export { router as profileRouter };

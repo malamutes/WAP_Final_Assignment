@@ -24,6 +24,7 @@ const CreatePost = () => {
                 navigate('/post/myPosts');
             } else {
                 console.error(res.status, reply.message)
+                alert("You need to be logged in to make a post!");
             }
         } catch (error) {
             console.error('Error:', error);

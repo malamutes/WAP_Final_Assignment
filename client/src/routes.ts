@@ -10,6 +10,7 @@ import CreatePost from "./pages/post/CreatePost";
 import MyPosts from "./pages/post/MyPosts";
 import EditPost from "./pages/post/EditPost";
 import Subscription from "./pages/subscription/Subscription";
+import Search from "./pages/search/Search";
 
 export const AppRouter = createBrowserRouter([
     {
@@ -55,7 +56,8 @@ export const AppRouter = createBrowserRouter([
             },
             {
                 path: 'subscription', Component: Subscription
-            }
+            },
+            { path: 'search', Component: Search }
         ],
     },
 ]);

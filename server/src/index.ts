@@ -168,6 +168,8 @@ interface ConnectedUser {
     username: string;
 }
 let connectedUsers: ConnectedUser[] = [];
+let userSubscriptions: { [key: string]: string[] } = {};
+let userSubscribers: { [key: string]: string[] } = {};
 
 //https://socket.io/how-to/use-with-passport
 //dont know how to type it, not provided on docs so just gonan copy it
@@ -211,6 +213,21 @@ io.on('connection', (socket) => {
 
     io.emit("UPDATED_USERS_LIST", connectedUsers);
 
+    socket.on("USER_SUBSCRIPTIONS", (subscriptionArray, subscribersArray) => {
+        console.log(subscriptionArray, subscribersArray);
+        userSubscriptions[user._id] = subscriptionArray; //session user's subscription
+        userSubscribers[user._id] = subscribersArray; //session user's subscribers
+
+        //this is to join room for subscription so it can be broadcasted
+        //i.e if i am subscribed to A AND B, then i need to be in their rooms to receive notifs
+        if (subscriptionArray.length !== 0) {
+            subscriptionArray.map((subscription: string) => {
+                socket.join(subscription);
+                console.log(`Socket ${socket.id} joined rooms:`, subscription);
+            });
+        }
+    })
+
     socket.on('disconnect', () => {
         connectedUsers = connectedUsers.filter(u => u.userId !== socket.request.user._id.toString());
 
@@ -220,7 +237,7 @@ io.on('connection', (socket) => {
     });
 });
 
-export { io };
+export { io, connectedUsers, userSubscriptions, userSubscribers };
 
 server.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);

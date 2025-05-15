@@ -6,13 +6,16 @@ import { RouterProvider } from 'react-router'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { UserProvider } from './context/userContext.tsx'
 import { SocketProvider } from './context/socketContext.tsx'
+import { NotificationProvider } from './context/notificationContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SocketProvider>
-      <UserProvider>
-        <RouterProvider router={AppRouter} />
-      </UserProvider>
+      <NotificationProvider>
+        <UserProvider>
+          <RouterProvider router={AppRouter} />
+        </UserProvider>
+      </NotificationProvider>
     </SocketProvider>
   </StrictMode>,
 )

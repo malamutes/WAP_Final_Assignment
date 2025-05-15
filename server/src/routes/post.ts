@@ -4,9 +4,12 @@ import { postValidationSchema } from '../models/post';
 import { Subscription } from '../models/subscription';
 import { User } from '../models/user';
 import mongoose from 'mongoose';
+import { io, userSubscribers, userSubscriptions } from '..';
+import { Notification } from '../models/notification';
+import { ObjectId } from 'mongoose';
 
 const router = Router();
-
+const ObjectId = mongoose.Types.ObjectId;
 // Create post
 router.post('/addPost', async (req, res) => {
     const { title, content, tags } = req.body;
@@ -30,6 +33,23 @@ router.post('/addPost', async (req, res) => {
             });
 
             await newPost.save();
+
+            io.to(req.session.passport.user.id.toString()).emit("NEW_POST", newPost);
+
+            Object.keys(userSubscribers).map(async (subscribers) => {
+                const newNotif = new Notification({
+                    recipientId: new ObjectId(subscribers),
+                    postId: newPost._id,
+                    seen: false,
+                    createdAt: new Date()
+                })
+
+                try {
+                    await newNotif.save();
+                } catch (err) {
+                    console.error(`Failed to save notification for ${subscribers}:`, err);
+                }
+            })
         }
         else {
             res.status(404).send({ message: "USER NEEDS TO BE LOGGED IN" })
@@ -200,8 +220,13 @@ router.delete('/delete/:postID', async (req, res) => {
 // Search posts
 router.get('/search', async (req, res) => {
     try {
-        const searchTerm = req.query.query as string;
-        if (!searchTerm) return res.redirect('/');
+        const searchTerm = req.query.searchQuery as string;
+
+        console.log("SEARCH TERM", searchTerm);
+        if (!searchTerm) {
+            res.status(404).send({ message: "NO SEARCH QUERY PROVIDED" });
+            return
+        }
 
         const posts = await Post.find({
             $or: [
@@ -210,7 +235,7 @@ router.get('/search', async (req, res) => {
             ]
         });
 
-        res.render('searchResults', { title: 'Search Results', message: `Results for "${searchTerm}"`, posts });
+        res.status(200).send({ title: 'Search Results', message: searchTerm, posts });
     } catch (error) {
         console.error(error);
         res.status(500).send('Server error');
