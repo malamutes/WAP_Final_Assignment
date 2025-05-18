@@ -10,12 +10,12 @@ import { NotificationProvider } from './context/notificationContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <SocketProvider>
+    <UserProvider>
       <NotificationProvider>
-        <UserProvider>
+        <SocketProvider>
           <RouterProvider router={AppRouter} />
-        </UserProvider>
+        </SocketProvider>
       </NotificationProvider>
-    </SocketProvider>
+    </UserProvider>
   </StrictMode>,
 )

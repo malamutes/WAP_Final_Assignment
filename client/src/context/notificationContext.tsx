@@ -1,11 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, type SetStateAction } from "react";
+import { useUserContext } from "./userContext";
 
 interface Notification {
     _id: string;
     postId: string;
     recipientId: string;
     seen: boolean;
-    createdAt: string;
+    timeStamp: string;
+    title: string;
+    authorName: string;
+    id: string
 }
 
 interface NotificationContextType {
@@ -27,6 +31,7 @@ interface NotificationProviderProps {
 
 export const NotificationProvider = (props: NotificationProviderProps) => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const { user } = useUserContext();
 
     useEffect(() => {
         const fetchNotifs = async () => {
@@ -51,7 +56,11 @@ export const NotificationProvider = (props: NotificationProviderProps) => {
         };
 
         fetchNotifs();
-    }, []);
+    }, [user]);
+
+    useEffect(() => {
+        console.log(notifications);
+    }, [notifications])
 
     return (
         <NotificationContext.Provider value={{

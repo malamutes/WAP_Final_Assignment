@@ -214,7 +214,7 @@ io.on('connection', (socket) => {
     io.emit("UPDATED_USERS_LIST", connectedUsers);
 
     socket.on("USER_SUBSCRIPTIONS", (subscriptionArray, subscribersArray) => {
-        console.log(subscriptionArray, subscribersArray);
+        console.log("SUBSCRIPTIONS AND SUBSCRIBERS", subscriptionArray, subscribersArray);
         userSubscriptions[user._id] = subscriptionArray; //session user's subscription
         userSubscribers[user._id] = subscribersArray; //session user's subscribers
 

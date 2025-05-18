@@ -34,14 +34,44 @@ router.post('/addPost', async (req, res) => {
 
             await newPost.save();
 
-            io.to(req.session.passport.user.id.toString()).emit("NEW_POST", newPost);
+            const now = new Date();
+            const postDate = new Date(newPost.date);
+            const diffInMs = now.getTime() - postDate.getTime();
+            const diffInMinutes = Math.floor(diffInMs / 60000);
 
-            Object.keys(userSubscribers).map(async (subscribers) => {
+            let timeStamp = '';
+            if (diffInMinutes < 1) {
+                timeStamp = 'just now';
+            } else if (diffInMinutes < 60) {
+                timeStamp = `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+            } else if (diffInMinutes < 1440) {
+                const hours = Math.floor(diffInMinutes / 60);
+                timeStamp = `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            } else {
+                const days = Math.floor(diffInMinutes / 1440);
+                timeStamp = `${days} day${days > 1 ? 's' : ''} ago`;
+            }
+
+
+            io.to(req.session.passport.user.id.toString()).emit("NEW_POST", {
+                postId: newPost._id,
+                seen: false,
+                createdAt: new Date(),
+                timeStamp: timeStamp,
+                authorName: req.session.passport?.user.username,
+                title: newPost.title
+            });
+
+            console.log("CHECKING WHO TO POST", userSubscribers[req.session.passport.user.id]);
+
+            userSubscribers[req.session.passport.user.id].map(async (subscribers) => {
+                console.log("NEW POST SUBS: ", subscribers);
+
                 const newNotif = new Notification({
                     recipientId: new ObjectId(subscribers),
                     postId: newPost._id,
                     seen: false,
-                    createdAt: new Date()
+                    createdAt: new Date(),
                 })
 
                 try {
@@ -77,7 +107,7 @@ router.get('/all', async function (req, res) {
         res.status(200).send({ posts: posts, message: "ALL POSTS RETRIEVED FOR MAIN" });
     } catch (error) {
         console.error("Error fetching posts:", error);
-        res.status(500).render('error', { message: "Unable to load posts" });
+        res.status(500).send({ message: "Unable to load posts" });
     }
 });
 
@@ -141,26 +171,6 @@ router.get('/getPost', async (req, res) => {
     }
 });
 
-// Edit post page
-router.get('/edit/:postID', async (req, res) => {
-    try {
-        const post = await Post.findById(req.params.postID);
-        if (!post) {
-            res.status(404).render('error', { message: 'Post not found' });
-            return
-        }
-
-        if (req.session.passport?.user.username !== post.author) {
-            res.status(403).render('error', { message: 'Not authorized' });
-            return
-        }
-
-        res.render('editPost', { post });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error loading edit page' });
-    }
-});
 
 // Submit edited post
 router.put('/edit/:postID', async (req, res) => {

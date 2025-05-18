@@ -17,6 +17,7 @@ function App() {
     const { user, setUser } = useUserContext();
     const { socket, connectedUsers } = useSocket();
     const { notifications, setNotification } = useNotificationContext();
+    const [seenNotifs, setSeenNotifs] = useState(false);
 
     const handleLogout = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
@@ -49,8 +50,43 @@ function App() {
         }
     }
 
+    const setSeenNotifsReq = async () => {
+        const unseen = notifications.filter(notifs => !notifs.seen);
+        const notifsIDS = unseen.map(n => n.id);
+
+        if (unseen.length === 0) {
+            return "NOTHING TO MARK AS SEEN"
+        }
+
+        const seenNotifs = await fetch('http://localhost:3000/profile/notification/seen', {
+            method: "PATCH",
+            credentials: 'include',
+            headers: {
+                'Content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                notifications: notifsIDS,
+            })
+        })
+
+        const reply = await seenNotifs.json()
+        if (seenNotifs.ok) {
+            alert(reply.message);
+            setNotification([]);
+        }
+        else {
+            alert(reply.message)
+        }
+    }
+
+    const handleToggle = async (isOpen: boolean) => {
+        if (!isOpen) {
+            setSeenNotifsReq();
+        }
+    };
+
     useEffect(() => {
-        console.log(user)
+        //console.log(user)
     }, [])
 
     return (
@@ -72,7 +108,7 @@ function App() {
                             {user ? (
                                 <>
                                     <Col>
-                                        <Dropdown align="end" className="position-relative">
+                                        <Dropdown align="end" className="position-relative" onToggle={(isOpen) => handleToggle(isOpen)}>
                                             <Dropdown.Toggle variant="link" bsPrefix="p-0 border-0 text-white">
                                                 <FaBell size={20} />
                                                 {notifications.length > 0 && (
@@ -90,10 +126,13 @@ function App() {
                                                     <Dropdown.ItemText>No new notifications</Dropdown.ItemText>
                                                 ) : (
                                                     notifications.map((notif, index) => (
-                                                        <Dropdown.Item key={index} href={`/post/${notif.postId}`}>
-                                                            <small className="text-muted">
-                                                                {new Date(notif.createdAt).toLocaleString()}
-                                                            </small>
+                                                        <Dropdown.Item key={notif.id} href={`/post/${notif.id}`}>
+                                                            <div>
+                                                                <strong>{notif.title}</strong>
+                                                                <div className="text-muted small">
+                                                                    by {notif.authorName} • {notif.timeStamp}
+                                                                </div>
+                                                            </div>
                                                         </Dropdown.Item>
                                                     ))
                                                 )}

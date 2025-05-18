@@ -3,6 +3,7 @@ import { User } from '../models/user';
 import { Post } from '../models/post';
 import { Subscription } from '../models/subscription';
 import { Notification } from '../models/notification';
+import mongoose from 'mongoose';
 
 const router = Router();
 
@@ -175,6 +176,7 @@ router.get('/notification', async function (req, res) {
     //console.log("SUBSCRPTIPON ROUTE!");
     try {
         const notifications = await Notification.find({ recipientId: req.session.passport?.user.id });
+        console.log("NOTIFICATIONS: ", notifications);
 
         if (notifications.length === 0) {
             res.status(404).send({ message: "NO subscribers FOUND!" });
@@ -214,10 +216,21 @@ router.get('/notification', async function (req, res) {
                 title: post.title,
                 authorName: post.author,
                 timeStamp,
+                date: post.date,
+                seen: notifications.seen,
+                id: post._id
                 // You can include more post or notification details here
             };
-        });
+        })
+            .filter(notifications => notifications?.seen === false && notifications !== null)
+            .sort((a, b) => {
+                if (a && b) {
+                    return b.date.getTime() - a.date.getTime();
+                }
+                return 0;
+            });
 
+        console.log(postNotif);
         // Extract all targetUserIds from the subscriptions
 
         //console.log("SUBSCRIPTIONS: ", userSubscriptions)
@@ -229,6 +242,45 @@ router.get('/notification', async function (req, res) {
     }
 });
 
+router.patch('/notification/seen', async function (req, res) {
+    try {
+        const { notifications } = req.body;
+        const userId = req.session.passport?.user.id;
+
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized: no user in session' });
+            return
+        }
+
+        if (!Array.isArray(notifications) || notifications.length === 0) {
+            res.status(400).json({ message: 'No notifications provided' });
+            return
+        }
+
+        const userObjectId = new mongoose.Types.ObjectId(userId); // Cast to ObjectId
+
+        const objectIds = notifications
+            .filter(id => typeof id === 'string')
+            .map(id => new mongoose.Types.ObjectId(id));
+
+        console.log("Final ObjectIds:", objectIds);
+
+        const result = await Notification.updateMany(
+            {
+                recipientId: userObjectId,
+                postId: { $in: objectIds }
+            },
+            { $set: { seen: true } }
+        );
+
+        console.log(`Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`);
+
+        res.status(200).send({ message: "NOTIFS MARKED SUCCESSFULLY" });
+    } catch (error) {
+        console.error("Error marking notifications as seen:", error);
+        res.status(500).json({ message: 'Error marking seen notifs' });
+    }
+});
 
 
 export { router as profileRouter };

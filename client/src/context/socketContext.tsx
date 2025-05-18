@@ -1,6 +1,7 @@
 // src/contexts/SocketContext.js
 import React, { createContext, useContext, useEffect, useState, type SetStateAction } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { useNotificationContext } from './notificationContext';
 
 type Subscription = {
     createdAt: Date;
@@ -41,7 +42,7 @@ export const SocketProvider = (props: SocketProviderProps) => {
     const [socket, setSocket] = useState<Socket | null>(null);
     const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>([]);
     const [connected, setConnected] = useState<boolean>(false);
-
+    const { notifications, setNotification } = useNotificationContext();
 
     const getAllSubscription = async (socket: Socket) => {
         let subscriptionArray = [];
@@ -78,7 +79,7 @@ export const SocketProvider = (props: SocketProviderProps) => {
             subscriptionArray = subscriptionReply.subscriptions.map((s: Subscription) => s.targetUserId)
         }
         else {
-            console.log(subscriptionReply.message)
+            //console.log(subscriptionReply.message)
         }
 
         socket?.emit(
@@ -106,7 +107,10 @@ export const SocketProvider = (props: SocketProviderProps) => {
         }
 
 
-        socket.on("NEW_POST", (msg) => console.log("NEW POST NOTIF", msg));
+        socket.on("NEW_POST", (msg) => {
+            console.log("NEW POST NOTIF", msg);
+            setNotification((prev) => [...prev, msg]);
+        });
 
         //PRINTING ALL USERS CONNECTED
         socket.on("UPDATED_USERS_LIST", (users) => { console.log(users); setConnectedUsers(users) });
