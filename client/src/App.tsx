@@ -93,7 +93,7 @@ function App() {
         <>
             <Navbar bg="dark" variant="dark" expand="xl" style={{ padding: 15 }}>
                 <Container style={{ justifyContent: 'space-between' }}>
-                    <Navbar.Brand href="/">MyApp</Navbar.Brand>
+                    <Navbar.Brand href="/">My Blog Website</Navbar.Brand>
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">

@@ -34,9 +34,9 @@ const CreatePost = () => {
 
 
     return (
-        <div className="container-fluid d-flex align-items-center justify-content-center">
+        <div className="container-fluid d-flex align-items-center justify-content-center" >
             <div className="row w-100">
-                <div className="col-md-3 mx-auto">
+                <div className="mx-auto col-md-8 col-lg-6">
                     <h3>Create New Post!</h3>
                     <form onSubmit={handleSubmit}>
                         <div className="mb-3">
